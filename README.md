@@ -4,7 +4,7 @@ API From: [TheMovieDB](https://www.themoviedb.org)
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/471271b3-8f79-4ca1-a52f-9a33919215fe" alt="Movie List" width="300"/>
-  <img src="https://github.com/user-attachments/assets/e7b41ad5-ba7c-4baf-9d74-7f1062f44948" alt="Movie Info" width="300"/>
+  <img src="https://github.com/user-attachments/assets/6787dc93-3044-44dd-89a0-9c9c17341fdf" alt="Movie Info" width="300"/>
 </p>
 
 ---
@@ -33,7 +33,7 @@ This application was built using:
 ## 🎥 Movie Info Screen
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/e7b41ad5-ba7c-4baf-9d74-7f1062f44948" alt="Movie Info" width="300"/>
+  <img src="https://github.com/user-attachments/assets/5f65cc53-a619-4e14-9de9-16aaf0a2d942" alt="Movie Info Detail" width="300"/>
 </p>
 
 ---
