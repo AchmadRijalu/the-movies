@@ -19,7 +19,7 @@ class MovieInfoService {
         let endpoint = Endpoints.Gets.movieInfo(movieId: movidId)
         let url = endpoint.url
         let headers = APICall.headers
-
+        
         AF.request(url, method: .get, encoding: URLEncoding.default, headers: headers,).responseData { movieData in
             switch movieData.result {
             case .success(let response):
@@ -31,14 +31,14 @@ class MovieInfoService {
                 completionBlock(nil, error)
             }
         }
-
+        
     }
     
     func fetchVideoMovie(movidId: Int, completionBlock: @escaping(MovieInfoVideoDataModel?, Error?) -> Void)  {
         let endpoint = Endpoints.Gets.movieVideo(movieId: movidId)
         let url = endpoint.url
         let headers = APICall.headers
-
+        
         AF.request(url, method: .get, encoding: URLEncoding.default, headers: headers,).responseData { movieData in
             switch movieData.result {
             case .success(let response):
@@ -50,9 +50,28 @@ class MovieInfoService {
                 completionBlock(nil, error)
             }
         }
-
     }
     
+    func fetchMovieReview(movidId: Int, completionBlock: @escaping(MovieInfoReviewDataModel?, Error?) -> Void)  {
+        let endpoint = Endpoints.Gets.movieReview(movieId: movidId)
+        let url = endpoint.url
+        let headers = APICall.headers
+        
+        AF.request(url, method: .get, encoding: URLEncoding.default, headers: headers,).responseData { movieData in
+            switch movieData.result {
+            case .success(let response):
+                let data = JSON(response)
+                let movieVideoData = MovieInfoReviewDataModel(json: data)
+                self.movieReviewDataModel = movieVideoData
+                completionBlock(movieVideoData, nil)
+            case .failure(let error):
+                completionBlock(nil, error)
+            }
+        }
+    }
+}
+
+extension MovieInfoService {
     func mapMovieInfoData() -> MovieInfoModel {
         let movieInfoData: MovieInfoModel = MovieInfoModel(title: movieInfoDataModel?.title ?? "", overview: movieInfoDataModel?.overview ?? "", releaseDate: movieInfoDataModel?.releaseDate ?? "", voteAverage: movieInfoDataModel?.voteAverage ?? 0.0)
         return movieInfoData
@@ -66,5 +85,15 @@ class MovieInfoService {
             movieVideos.append(videoData)
         }
         return movieVideos
+    }
+    
+    func convertMovieReviewListDataToListCell() -> [MovieReviewListCellModel] {
+        guard let reviewDatas = movieReviewDataModel?.results else {return []}
+        var reviews: [MovieReviewListCellModel] = []
+        for review in reviewDatas {
+            let movieReviewListCellModel: MovieReviewListCellModel = MovieReviewListCellModel(name: review.author, rating: review.rating ?? 0.0, content: review.content)
+            reviews.append(movieReviewListCellModel)
+        }
+        return reviews
     }
 }

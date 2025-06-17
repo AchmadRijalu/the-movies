@@ -32,7 +32,7 @@ class MovieListCell: UICollectionViewCell {
         let label = UILabel(frame: .zero)
         label.attributedText = NSAttributedString(string: "City Name", attributes: [.font: UIFont.systemFont(ofSize: 14, weight: .medium)])
         label.isSkeletonable = true
-        label.textColor = .black
+        label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -50,7 +50,7 @@ class MovieListCell: UICollectionViewCell {
     }
     
     func configureCell(movieListCellModel: MovieNowPlayingListCellModel) {
-        movieRatingLabel.text = String("⭐️ \(movieListCellModel.rating)")
+        movieRatingLabel.text = String(format: "⭐️ %.1f", movieListCellModel.rating)
         movieImageView.sd_setImage(with: URL(string: "\(Endpoints.Gets.image(imageFilePath: movieListCellModel.posterImage).url)"))
     }
     
@@ -60,7 +60,6 @@ extension MovieListCell {
     private func setupView() {
         contentView.layer.cornerRadius = 20
         contentView.layer.masksToBounds = true
-        contentView.backgroundColor = .white
         contentView.addSubview(containerView)
         containerView.addSubview(movieImageView)
         containerView.addSubview(movieRatingLabel)
@@ -74,7 +73,7 @@ extension MovieListCell {
             movieImageView.topAnchor.constraint(equalTo: containerView.topAnchor),
             movieImageView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             movieImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            movieImageView.heightAnchor.constraint(equalToConstant: 220),
+            movieImageView.heightAnchor.constraint(equalToConstant: 180),
             
             movieRatingLabel.topAnchor.constraint(equalTo: movieImageView.bottomAnchor, constant: 8),
             movieRatingLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor)

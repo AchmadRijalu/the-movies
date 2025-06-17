@@ -18,6 +18,7 @@ protocol MovieNowPlayingViewModelDelegate: AnyObject {
     func onSetupView()
     func onReload()
     func navigateToMovieInfo(movieId: Int)
+    func showErrorBottomSheet(message: String)
 }
 
 class MovieNowPlayingViewModel: MovieNowPlayingViewModelProtocol {
@@ -51,6 +52,9 @@ extension MovieNowPlayingViewModel {
     func fetchMovieNowPlayingList(page: Int) {
         MovieNowPlayingListService.shared.fetchMovieNowPlayingListData(page: page) { [weak self] movieData, error in
             guard let self = self else { return }
+            if let error = error {
+                self.delegate?.showErrorBottomSheet(message: "Failed to fetch the Movie Data.")
+            }
             if let movieData, !movieData.isEmpty {
                 let newMovieData = MovieNowPlayingListService.shared.convertNowPlayingListDataToListCell(from: movieData)
                 self.nowPlayingMovieListCellModel.append(contentsOf: newMovieData)

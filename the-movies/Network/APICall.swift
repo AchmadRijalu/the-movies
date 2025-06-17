@@ -42,7 +42,7 @@ enum Endpoints {
             case .movieVideo(movieId: let movieId):
                 return "\(APICall.baseUrl)/\(movieId)/videos?api_key=\(APICall.apiKey)"
             case .movieReview(movieId: let movieId):
-                return ""
+                return "\(APICall.baseUrl)/\(movieId)/reviews?api_key=\(APICall.apiKey)"
             }
         }
     }

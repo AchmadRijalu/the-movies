@@ -17,7 +17,7 @@ class MovieListViewController: UIViewController {
         layout.scrollDirection = .vertical
         layout.minimumLineSpacing = 12
         layout.minimumInteritemSpacing = 12
-        layout.sectionInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        layout.sectionInset = UIEdgeInsets(top: 12, left: 12, bottom: 20, right: 12)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -45,6 +45,7 @@ class MovieListViewController: UIViewController {
 }
 
 extension MovieListViewController: MovieNowPlayingViewModelDelegate{
+    
     func onSetupView() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -83,6 +84,11 @@ extension MovieListViewController: MovieNowPlayingViewModelDelegate{
         navigation.pushViewController(view, animated: true)
     }
     
+    func showErrorBottomSheet(message: String) {
+        let bottomSheet = ErrorBottomSheet(message: message)
+        present(bottomSheet, animated: true)
+    }
+    
 }
 extension MovieListViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -99,7 +105,7 @@ extension MovieListViewController: UICollectionViewDataSource, UICollectionViewD
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-        let numberOfColumns: CGFloat = 2
+        let numberOfColumns: CGFloat = 3
         let layout = collectionViewLayout as! UICollectionViewFlowLayout
 
         let totalHorizontalInsets = layout.sectionInset.left + layout.sectionInset.right
@@ -108,7 +114,7 @@ extension MovieListViewController: UICollectionViewDataSource, UICollectionViewD
         let availableWidth = collectionView.bounds.width - totalHorizontalInsets - totalSpacingBetweenItems
         let itemWidth = floor(availableWidth / numberOfColumns)
         
-        let itemHeight = itemWidth * 1.4
+        let itemHeight = itemWidth * 1.8
 
         return CGSize(width: itemWidth, height: itemHeight)
     }
@@ -127,7 +133,6 @@ extension MovieListViewController: UICollectionViewDataSource, UICollectionViewD
             viewModel.onScrollToBottom()
         }
     }
-
 }
 
 extension MovieListViewController: SkeletonCollectionViewDataSource, SkeletonCollectionViewDelegate {
