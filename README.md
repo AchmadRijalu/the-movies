@@ -13,7 +13,8 @@ API From: [TheMovieDB](https://www.themoviedb.org)
 
 This application was built using:
 
-- UIKit  
+- UIKit
+- RxSwift
 - Alamofire  
 - SDWebImage  
 - SwiftyJSON  
