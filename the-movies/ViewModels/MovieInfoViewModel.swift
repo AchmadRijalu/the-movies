@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RxSwift
 
 protocol MovieInfoViewModelProtocol: AnyObject {
     var delegate: MovieInfoViewModelDelegate? { get set }
@@ -28,7 +29,8 @@ class MovieInfoViewModel: MovieInfoViewModelProtocol {
     private let movieId: Int
     private var movieInfoModel: MovieInfoModel?
     private var movieInfoVideoModel: [MovieInfoVideoModel]?
-    private var movieRevieListCellModel: [MovieReviewListCellModel]?
+    private var movieReviewListCellModel: [MovieReviewListCellModel]?
+    private let disposeBag = DisposeBag()
     
     init(movieId: Int) {
         self.movieId = movieId
@@ -47,75 +49,47 @@ class MovieInfoViewModel: MovieInfoViewModelProtocol {
     }
     
     func getMovieReviews() -> [MovieReviewListCellModel] {
-        return movieRevieListCellModel ?? []
+        return movieReviewListCellModel ?? []
     }
     
 }
 
 extension MovieInfoViewModel {
     func fetchMovieDetailData(movieId: Int) {
-        let group = DispatchGroup()
-
-        var fetchedMovieInfo: MovieInfoModel?
-        var fetchedMovieVideos: [MovieInfoVideoModel]?
-        var fetchedMovieReviews: [MovieReviewListCellModel]?
-        var fetchError: Error?
-
-        group.enter()
-        MovieInfoService.shared.fetchMovieInfoData(movidId: movieId) { movieData, error in
-            defer { group.leave() }
-            if let error = error {
-                fetchError = error
-            } else if movieData != nil {
-                fetchedMovieInfo = MovieInfoService.shared.mapMovieInfoData()
-            }
-        }
-
-        group.enter()
-        MovieInfoService.shared.fetchVideoMovie(movidId: movieId) { videoData, error in
-            defer { group.leave() }
-            if let error = error, fetchError == nil {
-                fetchError = error
-            } else if videoData != nil {
-                fetchedMovieVideos = MovieInfoService.shared.mapMovieVideoData()
-            }
-        }
-
-        group.enter()
-        MovieInfoService.shared.fetchMovieReview(movidId: movieId) { reviewData, error in
-            defer { group.leave() }
-            if let error = error, fetchError == nil {
-                fetchError = error
-            } else if reviewData != nil {
-                fetchedMovieReviews = MovieInfoService.shared.convertMovieReviewListDataToListCell()
-            }
-        }
-
-        group.notify(queue: .main) {
-            if fetchError != nil {
-                self.delegate?.showErrorBottomSheet(message:  "Failed to fetch the Movie Data.")
-                return
-            }
-
-            guard let movieInfo = fetchedMovieInfo else {
-                self.delegate?.showErrorBottomSheet(message: "Ooppss There is something wrong!")
-                return
-            }
-
-            self.movieInfoModel = movieInfo
-            self.movieInfoVideoModel = fetchedMovieVideos
-            self.movieRevieListCellModel = fetchedMovieReviews
-
-            let youtubeIds = self.getMovieYoutubeKeyId()
-            self.delegate?.setupConfigureView(
-                youtubeKeyId: youtubeIds,
-                movieInfoModel: movieInfo,
-                movieReviewListCellModel: self.getMovieReviews()
-            )
-            self.delegate?.onReload()
-        }
+        let infoObservable = MovieInfoService.shared.fetchMovieInfoData(movidId: movieId)
+        let videoObservable = MovieInfoService.shared.fetchVideoMovie(movidId: movieId)
+        let reviewObservable = MovieInfoService.shared.fetchMovieReview(movidId: movieId)
+        
+        Observable.zip(infoObservable, videoObservable, reviewObservable)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] infoData, videoData, reviewData in
+                guard let self = self else { return }
+                
+                self.movieInfoModel = MovieInfoService.shared.mapMovieInfoData()
+                self.movieInfoVideoModel = MovieInfoService.shared.mapMovieVideoData()
+                self.movieReviewListCellModel = MovieInfoService.shared.convertMovieReviewListDataToListCell()
+                
+                guard let movieInfo = self.movieInfoModel else {
+                    self.delegate?.showErrorBottomSheet(message: "Oops! Something went wrong.")
+                    return
+                }
+                
+                let youtubeIds = self.getMovieYoutubeKeyId()
+                let reviewList = self.getMovieReviews()
+                
+                self.delegate?.setupConfigureView(
+                    youtubeKeyId: youtubeIds,
+                    movieInfoModel: movieInfo,
+                    movieReviewListCellModel: reviewList
+                )
+                self.delegate?.onReload()
+                
+            }, onError: { [weak self] error in
+                self?.delegate?.showErrorBottomSheet(message: "Failed to fetch the Movie Data.")
+            })
+            .disposed(by: disposeBag)
     }
-
 }
+
 
 

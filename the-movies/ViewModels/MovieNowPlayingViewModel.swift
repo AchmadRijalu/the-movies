@@ -5,6 +5,8 @@
 //  Created by Achmad Rijalu on 16/06/25.
 //
 
+import RxSwift
+
 protocol MovieNowPlayingViewModelProtocol: AnyObject {
     var delegate: MovieNowPlayingViewModelDelegate? { get set }
     func onViewDidLoad()
@@ -27,6 +29,7 @@ class MovieNowPlayingViewModel: MovieNowPlayingViewModelProtocol {
     
     private var nowPlayingMovieListCellModel: [MovieNowPlayingListCellModel] = []
     private var currentPage = 1
+    private let disposebag = DisposeBag()
     
     func onViewDidLoad() {
         nowPlayingMovieListCellModel.removeAll()
@@ -50,17 +53,21 @@ class MovieNowPlayingViewModel: MovieNowPlayingViewModelProtocol {
 
 extension MovieNowPlayingViewModel {
     func fetchMovieNowPlayingList(page: Int) {
-        MovieNowPlayingListService.shared.fetchMovieNowPlayingListData(page: page) { [weak self] movieData, error in
-            guard let self = self else { return }
-            if let error = error {
-                self.delegate?.showErrorBottomSheet(message: "Failed to fetch the Movie Data.")
-            }
+        MovieNowPlayingListService.shared.fetchMovieNowPlayingListData(page: page).observe(on: MainScheduler.instance).subscribe(onNext: { [weak self] movieData in
+            guard let self = self else {return}
             if let movieData, !movieData.isEmpty {
                 let newMovieData = MovieNowPlayingListService.shared.convertNowPlayingListDataToListCell(from: movieData)
                 self.nowPlayingMovieListCellModel.append(contentsOf: newMovieData)
                 self.delegate?.onReload()
             }
-            
+        }, onError: { [weak self] _ in
+            self?.delegate?.showErrorBottomSheet(message: "Failed to Load the Movie Data")
         }
+        ).disposed(by: disposebag)
+        
     }
 }
+
+
+
+
