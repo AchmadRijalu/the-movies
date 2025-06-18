@@ -31,7 +31,7 @@ class MovieInfoViewController: UIViewController {
 
     private lazy var backButtonImageView: UIImageView = {
         let image = UIImageView()
-        image.image = UIImage(systemName: "arrowshape.turn.up.backward")
+        image.image = UIImage(systemName: "chevron.backward")
         image.tintColor = .black
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
@@ -138,8 +138,6 @@ extension MovieInfoViewController {
 
             backButtonImageView.centerXAnchor.constraint(equalTo: backButtonContainer.centerXAnchor),
             backButtonImageView.centerYAnchor.constraint(equalTo: backButtonContainer.centerYAnchor),
-            backButtonImageView.widthAnchor.constraint(equalToConstant: 20),
-            backButtonImageView.heightAnchor.constraint(equalToConstant: 20)
         ])
         view.isSkeletonable = true
         movieVideoContainer.showAnimatedGradientSkeleton()
