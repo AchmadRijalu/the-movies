@@ -31,6 +31,9 @@ class MovieListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         viewModel.onViewDidLoad()
+        //MARK: - UIContextMenuInteraction is for enable the uiview is tappable for 3d touch
+//        let touchInteraction = UIContextMenuInteraction(delegate: self)
+//        view.addInteraction(touchInteraction)
     }
     
     init(viewModel: MovieNowPlayingViewModelProtocol) {
@@ -57,7 +60,7 @@ extension MovieListViewController: MovieNowPlayingViewModelDelegate{
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         view.addSubview(collectionView)
         navigationController?.navigationBar.prefersLargeTitles = true
-        navigationItem.title = "Now Playing 🔥"
+        navigationItem.title = "Now Playing "
         view.isSkeletonable = true
         self.collectionView.isSkeletonable = true
         NSLayoutConstraint.activate([
@@ -91,6 +94,16 @@ extension MovieListViewController: MovieNowPlayingViewModelDelegate{
     
 }
 extension MovieListViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout{
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        let currentOffSet = collectionView.contentOffset.y
+        let maximumOffSet = collectionView.contentSize.height - collectionView.frame.size.height
+        
+        if currentOffSet >= maximumOffSet {
+            viewModel.onScrollToBottom()
+        }
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModel.getNowPlayingList().count
     }
@@ -122,17 +135,35 @@ extension MovieListViewController: UICollectionViewDataSource, UICollectionViewD
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let movieData = viewModel.getNowPlayingList()[indexPath.row]
         viewModel.onMovieNowPlayingDidTap(movieNowPlayingListCellModel: movieData)
-        
     }
-    
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        let currentOffSet = collectionView.contentOffset.y
-        let maximumOffSet = collectionView.contentSize.height - collectionView.frame.size.height
-        
-        if currentOffSet >= maximumOffSet {
-            viewModel.onScrollToBottom()
+    //MARK: - 3D Touch Peek and Pop
+     func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPaths: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+         let movieData = viewModel.getNowPlayingList()[indexPaths.row]
+        return UIContextMenuConfiguration(identifier: indexPaths as NSCopying) {
+            return MoviePreviewViewController(movieNowPlayingListCellModel: movieData)
+        } actionProvider: { action in
+            return self.makeContextMenu()
         }
     }
+    
+    func collectionView(_ collectionView: UICollectionView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: any UIContextMenuInteractionCommitAnimating) {
+        guard let movieDataIndexPath = configuration.identifier as? IndexPath else { return }
+        let movieData = viewModel.getNowPlayingList()[movieDataIndexPath.row]
+        animator.addAnimations {
+            self.viewModel.onMovieNowPlayingDidTap(movieNowPlayingListCellModel: movieData)
+        }
+    }
+    
+    func makeContextMenu() -> UIMenu {
+        let shareAction: UIAction = UIAction(title: "Share Movie", image: UIImage(systemName: "square.and.arrow.up")) { action in
+            
+        }
+        let deleteAction: UIAction = UIAction(title: "Delete Movie", image: UIImage(systemName: "trash"), attributes: .destructive) { action in
+            
+        }
+        return UIMenu(children: [shareAction, deleteAction])
+    }
+    
 }
 
 extension MovieListViewController: SkeletonCollectionViewDataSource, SkeletonCollectionViewDelegate {
